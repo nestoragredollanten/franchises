@@ -27,7 +27,7 @@ public class FranchiseRepositoryImpl implements FranchiseRepository {
     public static final String ENTITY_TYPE = "EntityType";
     public static final String ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final DynamoDbAsyncClient dynamoDbAsyncClient;
-    private Random random = new Random();
+    private final Random random = new Random();
 
     public FranchiseRepositoryImpl(DynamoDbAsyncClient dynamoDbAsyncClient) {
         this.dynamoDbAsyncClient = dynamoDbAsyncClient;
