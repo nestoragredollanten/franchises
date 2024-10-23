@@ -31,4 +31,9 @@ public class FranchiseServiceImpl implements FranchiseService {
     public Mono<Product> addProduct(Product product) {
         return franchiseRepository.addProduct(product);
     }
+
+    @Override
+    public Mono<String> deleteProduct(String franchiseId, String branchId, String productId) {
+        return franchiseRepository.deleteProduct(franchiseId, branchId, productId);
+    }
 }

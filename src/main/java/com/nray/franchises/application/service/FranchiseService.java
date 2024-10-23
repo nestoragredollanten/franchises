@@ -11,4 +11,6 @@ public interface FranchiseService {
     Mono<Branch> addBranch(Branch branch);
 
     Mono<Product> addProduct(Product product);
+
+    Mono<String> deleteProduct(String franchiseId, String branchId, String productId);
 }

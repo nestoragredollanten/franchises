@@ -6,10 +6,7 @@ import com.nray.franchises.domain.model.Franchise;
 import com.nray.franchises.domain.model.Product;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -40,6 +37,15 @@ public class FranchiseController {
     public Mono<ResponseEntity<Product>> addBranch(@RequestBody Product product) {
         return franchiseService.addProduct(product)
                 .map(savedProduct -> ResponseEntity.status(HttpStatus.CREATED).body(savedProduct))
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
+    }
+
+    @DeleteMapping("/product")
+    public Mono<ResponseEntity<String>> deleteBranch(@RequestParam String franchiseId,
+                                                     @RequestParam String branchId,
+                                                     @RequestParam String productId) {
+        return franchiseService.deleteProduct(franchiseId, branchId, productId)
+                .map(deleteProduct -> ResponseEntity.status(HttpStatus.CREATED).body(deleteProduct))
                 .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
     }
 }
