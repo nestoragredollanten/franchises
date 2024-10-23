@@ -1,6 +1,7 @@
 package com.nray.franchises.web.controller;
 
 import com.nray.franchises.application.service.FranchiseService;
+import com.nray.franchises.domain.model.Branch;
 import com.nray.franchises.domain.model.Franchise;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,17 @@ public class FranchiseController {
         this.franchiseService = franchiseService;
     }
 
-    @PostMapping
+    @PostMapping("/franchise")
     public Mono<ResponseEntity<Franchise>> addFranchise(@RequestBody Franchise franchise) {
         return franchiseService.addFranchise(franchise)
                 .map(savedFranchise -> ResponseEntity.status(HttpStatus.CREATED).body(savedFranchise))
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
+    }
+
+    @PostMapping("/branch")
+    public Mono<ResponseEntity<Branch>> addBranch(@RequestBody Branch branch) {
+        return franchiseService.addBranch(branch)
+                .map(savedBranch -> ResponseEntity.status(HttpStatus.CREATED).body(savedBranch))
                 .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
     }
 }

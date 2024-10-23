@@ -1,5 +1,6 @@
 package com.nray.franchises.infrastructure.repository;
 
+import com.nray.franchises.domain.model.Branch;
 import com.nray.franchises.domain.model.Franchise;
 import com.nray.franchises.domain.repository.FranchiseRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 @Repository
 public class FranchiseRepositoryImpl implements FranchiseRepository {
 
+    public static final String FRANCHISE = "FRANCHISE#";
     private final DynamoDbAsyncClient dynamoDbAsyncClient;
 
     public FranchiseRepositoryImpl(DynamoDbAsyncClient dynamoDbAsyncClient) {
@@ -27,8 +29,8 @@ public class FranchiseRepositoryImpl implements FranchiseRepository {
     @Override
     public Mono<Franchise> addFranchise(Franchise franchise) {
         Map<String, AttributeValue> itemValues = new HashMap<>();
-        itemValues.put("PK", AttributeValue.builder().s("FRANCHISE#" + franchise.franchiseId()).build());
-        itemValues.put("SK", AttributeValue.builder().s("FRANCHISE#" + franchise.franchiseId()).build());
+        itemValues.put("PK", AttributeValue.builder().s(FRANCHISE + franchise.franchiseId()).build());
+        itemValues.put("SK", AttributeValue.builder().s(FRANCHISE + franchise.franchiseId()).build());
         itemValues.put("EntityType", AttributeValue.builder().s("Franchise").build());
         itemValues.put("name", AttributeValue.builder().s(franchise.name()).build());
 
@@ -44,5 +46,27 @@ public class FranchiseRepositoryImpl implements FranchiseRepository {
                         log.error("Error add franchise: {}", error.getMessage())
                 )
                 .thenReturn(franchise);
+    }
+
+    @Override
+    public Mono<Branch> addBranch(Branch branch) {
+        Map<String, AttributeValue> itemValues = new HashMap<>();
+        itemValues.put("PK", AttributeValue.builder().s(FRANCHISE + branch.franchiseId()).build());
+        itemValues.put("SK", AttributeValue.builder().s("BRANCH#" + branch.branchId()).build());
+        itemValues.put("EntityType", AttributeValue.builder().s("Branch").build());
+        itemValues.put("name", AttributeValue.builder().s(branch.name()).build());
+
+        PutItemRequest request = PutItemRequest.builder()
+                .tableName("FranchiseTable")
+                .item(itemValues)
+                .build();
+
+        CompletableFuture<PutItemResponse> future = dynamoDbAsyncClient.putItem(request);
+
+        return Mono.fromFuture(future)
+                .doOnError(error ->
+                        log.error("Error add branch: {}", error.getMessage())
+                )
+                .thenReturn(branch);
     }
 }
