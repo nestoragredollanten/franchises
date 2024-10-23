@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 
@@ -26,6 +27,7 @@ public class FranchiseRepositoryImpl implements FranchiseRepository {
     public static final String FRANCHISE_TABLE = "FranchiseTable";
     public static final String ENTITY_TYPE = "EntityType";
     public static final String ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    public static final String PRODUCT = "#PRODUCT#";
     private final DynamoDbAsyncClient dynamoDbAsyncClient;
     private final Random random = new Random();
 
@@ -83,7 +85,7 @@ public class FranchiseRepositoryImpl implements FranchiseRepository {
 
         Map<String, AttributeValue> itemValues = new HashMap<>();
         itemValues.put("PK", AttributeValue.builder().s(FRANCHISE + product.franchiseId()).build());
-        itemValues.put("SK", AttributeValue.builder().s(BRANCH + product.branchProductId() + "#PRODUCT#" + productId).build());
+        itemValues.put("SK", AttributeValue.builder().s(BRANCH + product.branchProductId() + PRODUCT + productId).build());
         itemValues.put(ENTITY_TYPE, AttributeValue.builder().s("Product").build());
         itemValues.put("name", AttributeValue.builder().s(product.productName()).build());
         itemValues.put("stock", AttributeValue.builder().n(Integer.toString(product.stock())).build());
@@ -100,6 +102,28 @@ public class FranchiseRepositoryImpl implements FranchiseRepository {
                         log.error("Error add product: {}", error.getMessage())
                 )
                 .thenReturn(product);
+    }
+
+    @Override
+    public Mono<String> deleteProduct(String franchiseId, String branchId, String productId) {
+
+        String pk = FRANCHISE + franchiseId;
+        String sk = BRANCH + branchId + PRODUCT + productId;
+
+        Map<String, AttributeValue> keyToDelete = new HashMap<>();
+        keyToDelete.put("PK", AttributeValue.builder().s(pk).build());
+        keyToDelete.put("SK", AttributeValue.builder().s(sk).build());
+
+        DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+                .tableName(FRANCHISE_TABLE)
+                .key(keyToDelete)
+                .build();
+
+        CompletableFuture<String> future = dynamoDbAsyncClient.deleteItem(deleteRequest)
+                .thenApply(deleteItemResponse -> "Product deleted"); // Convertir el CompletableFuture<Void>
+
+        return Mono.fromFuture(future)
+                .doOnError(error -> log.error("Error deleting product: {}", error.getMessage()));
     }
 
     private String generateRandomId() {
