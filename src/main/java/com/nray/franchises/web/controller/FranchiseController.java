@@ -41,9 +41,9 @@ public class FranchiseController {
     }
 
     @DeleteMapping("/product")
-    public Mono<ResponseEntity<String>> deleteBranch(@RequestParam String franchiseId,
-                                                     @RequestParam String branchId,
-                                                     @RequestParam String productId) {
+    public Mono<ResponseEntity<String>> deleteProduct(@RequestParam String franchiseId,
+                                                      @RequestParam String branchId,
+                                                      @RequestParam String productId) {
         return franchiseService.deleteProduct(franchiseId, branchId, productId)
                 .map(deleteProduct -> ResponseEntity.status(HttpStatus.CREATED).body(deleteProduct))
                 .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
