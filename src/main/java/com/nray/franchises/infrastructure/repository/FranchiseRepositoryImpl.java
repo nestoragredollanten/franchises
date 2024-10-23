@@ -120,7 +120,7 @@ public class FranchiseRepositoryImpl implements FranchiseRepository {
                 .build();
 
         CompletableFuture<String> future = dynamoDbAsyncClient.deleteItem(deleteRequest)
-                .thenApply(deleteItemResponse -> "Product deleted"); // Convertir el CompletableFuture<Void>
+                .thenApply(deleteItemResponse -> "Product deleted");
 
         return Mono.fromFuture(future)
                 .doOnError(error -> log.error("Error deleting product: {}", error.getMessage()));
