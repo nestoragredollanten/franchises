@@ -8,10 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -124,6 +121,36 @@ public class FranchiseRepositoryImpl implements FranchiseRepository {
 
         return Mono.fromFuture(future)
                 .doOnError(error -> log.error("Error deleting product: {}", error.getMessage()));
+    }
+
+    @Override
+    public Mono<String> updateStockProduct(String franchiseId, String branchId, String productId, int stock) {
+        String pk = FRANCHISE + franchiseId;
+        String sk = BRANCH + branchId + PRODUCT + productId;
+
+        Map<String, AttributeValue> keyToUpdate = new HashMap<>();
+        keyToUpdate.put("PK", AttributeValue.builder().s(pk).build());
+        keyToUpdate.put("SK", AttributeValue.builder().s(sk).build());
+
+        Map<String, String> expressionAttributeNames = new HashMap<>();
+        expressionAttributeNames.put("#S", "stock");
+
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":newStock", AttributeValue.builder().n(Integer.toString(stock)).build());
+
+        UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
+                .tableName(FRANCHISE_TABLE)
+                .key(keyToUpdate)
+                .updateExpression("SET #S = :newStock")
+                .expressionAttributeNames(expressionAttributeNames)
+                .expressionAttributeValues(expressionAttributeValues)
+                .build();
+
+        CompletableFuture<String> future = dynamoDbAsyncClient.updateItem(updateItemRequest)
+                .thenApply(deleteItemResponse -> "Stock product updated");
+
+        return Mono.fromFuture(future)
+                .doOnError(error -> log.error("Error update stock product: {}", error.getMessage()));
     }
 
     private String generateRandomId() {

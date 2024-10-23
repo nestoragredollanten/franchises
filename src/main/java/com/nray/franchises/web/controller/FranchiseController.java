@@ -48,4 +48,14 @@ public class FranchiseController {
                 .map(deleteProduct -> ResponseEntity.status(HttpStatus.CREATED).body(deleteProduct))
                 .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
     }
+
+    @PutMapping("/product")
+    public Mono<ResponseEntity<String>> updateStockProduct(@RequestParam String franchiseId,
+                                                           @RequestParam String branchId,
+                                                           @RequestParam String productId,
+                                                           @RequestParam int stock) {
+        return franchiseService.updateStockProduct(franchiseId, branchId, productId, stock)
+                .map(deleteProduct -> ResponseEntity.status(HttpStatus.CREATED).body(deleteProduct))
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
+    }
 }
